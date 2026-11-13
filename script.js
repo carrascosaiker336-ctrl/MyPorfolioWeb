@@ -437,6 +437,8 @@
         method: 'POST',
         body: new FormData(form),
         headers: { Accept: 'application/json' },
+        redirect: 'error',
+        referrerPolicy: 'strict-origin-when-cross-origin',
       });
       const result = await response.json().catch(() => null);
 
@@ -458,7 +460,7 @@
     } catch (error) {
       setStatus(
         error instanceof TypeError
-          ? 'No se pudo conectar con el servicio. Comprueba tu conexión e inténtalo de nuevo.'
+          ? 'No se pudo confirmar el envío. Comprueba la conexión y vuelve a intentarlo.'
           : error.message,
         'error'
       );
@@ -471,3 +473,4 @@
 
   $('#year').textContent = String(new Date().getFullYear());
 })();
+
