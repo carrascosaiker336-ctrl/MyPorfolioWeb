@@ -386,8 +386,6 @@
 
   const form = $('#contactForm');
   const status = $('#formStatus');
-  const CONTACT_EMAIL = 'carrascosaiker336@gmail.com';
-
   const validators = {
     name: (value) => (value.length >= 2 ? '' : 'Escribe tu nombre (mínimo 2 caracteres).'),
     email: (value) =>
@@ -420,7 +418,7 @@
     });
   });
 
-  form.addEventListener('submit', (event) => {
+  form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const invalid = inputs.filter((input) => !validateField(input));
 
@@ -430,15 +428,43 @@
       return;
     }
 
-    const data = new FormData(form);
-    const subject = `Contacto desde el portfolio — ${data.get('name').trim()}`;
-    const bodyText = `${data.get('message').trim()}\n\n${data.get('name').trim()}\n${data.get('email').trim()}`;
-    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;
+    const submitButton = $('button[type="submit"]', form);
+    submitButton.disabled = true;
+    setStatus('Enviando tu mensaje…', '');
 
-    setStatus(
-      'Datos correctos. Se ha abierto tu aplicación de correo con el mensaje preparado: envíalo desde allí para completar el contacto.',
-      'ok'
-    );
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { Accept: 'application/json' },
+      });
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const detail = Array.isArray(result?.errors)
+          ? result.errors.map((error) => error.message).filter(Boolean).join(' ')
+          : '';
+        throw new Error(detail || 'No se pudo enviar el mensaje. Inténtalo de nuevo más tarde.');
+      }
+
+      form.reset();
+      inputs.forEach((input) => {
+        const field = input.closest('.field');
+        field.classList.remove('is-valid', 'is-invalid');
+        input.setAttribute('aria-invalid', 'false');
+        $('.field__error', field).textContent = '';
+      });
+      setStatus('Mensaje enviado correctamente. Gracias por escribirme.', 'ok');
+    } catch (error) {
+      setStatus(
+        error instanceof TypeError
+          ? 'No se pudo conectar con el servicio. Comprueba tu conexión e inténtalo de nuevo.'
+          : error.message,
+        'error'
+      );
+    } finally {
+      submitButton.disabled = false;
+    }
   });
 
   /* ---------- Footer ---------- */
