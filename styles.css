@@ -482,6 +482,11 @@ dd {
   color: var(--white);
 }
 
+.btn:disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .btn__arrow {
   transition: transform 0.4s var(--ease);
 }
